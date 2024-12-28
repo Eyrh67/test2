@@ -1,0 +1,124 @@
+-- Danh sách các tên của các chest
+local chestNames = {"chest1", "chest2", "chest3"}
+
+-- Trạng thái bật/tắt dịch chuyển
+local autoTeleport = false
+
+-- Tốc độ bay
+local flySpeed = 5
+
+-- Hàm tìm chest trong Workspace
+local function findChest(chestName)
+    return game.Workspace:FindFirstChild(chestName)
+end
+
+-- Hàm bay đến vị trí mục tiêu
+local function flyToPosition(player, targetPosition)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    -- Tính toán hướng bay
+    local direction = (targetPosition - humanoidRootPart.Position).Unit
+    local distance = (targetPosition - humanoidRootPart.Position).Magnitude
+    local duration = distance / flySpeed
+
+    -- Bay từng chút đến mục tiêu
+    for i = 1, math.ceil(duration / 0.1) do
+        if not autoTeleport then break end -- Dừng nếu bị tắt
+        humanoidRootPart.CFrame = humanoidRootPart.CFrame + direction * flySpeed * 0.1
+        wait(0.1)
+    end
+end
+
+-- Hàm tự động dịch chuyển giữa các chest
+local function autoTeleportToChests(player)
+    while autoTeleport do
+        for _, chestName in ipairs(chestNames) do
+            if not autoTeleport then break end -- Dừng nếu bị tắt
+
+            local chest = findChest(chestName)
+            if chest then
+                flyToPosition(player, chest.Position)
+                wait(1) -- Dừng một chút trước khi di chuyển đến chest tiếp theo
+            else
+                print("Không tìm thấy " .. chestName)
+            end
+        end
+    end
+end
+
+-- Tạo GUI
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = playerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 100) -- Kích thước Frame
+frame.Position = UDim2.new(0.5, -100, 0.5, -50) -- Vị trí trung tâm màn hình
+frame.BackgroundColor3 = Color3.new(0, 0, 0) -- Màu đen
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+-- Kéo thả Frame
+local dragging = false
+local dragInput, dragStart, startPos
+
+local UIS = game:GetService("UserInputService")
+
+local function update(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Nút "Auto Dịch Chuyển"
+local teleportButton = Instance.new("TextButton")
+teleportButton.Size = UDim2.new(0, 180, 0, 50)
+teleportButton.Position = UDim2.new(0, 10, 0, 10)
+teleportButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2) -- Màu xám
+teleportButton.Text = "Bật Auto Dịch Chuyển"
+teleportButton.TextColor3 = Color3.new(1, 1, 1) -- Màu chữ trắng
+teleportButton.Parent = frame
+
+teleportButton.MouseButton1Click:Connect(function()
+    autoTeleport = not autoTeleport
+    if autoTeleport then
+        teleportButton.Text = "Tắt Auto Dịch Chuyển"
+        print("Auto Dịch Chuyển ĐÃ BẬT")
+        autoTeleportToChests(player)
+    else
+        teleportButton.Text = "Bật Auto Dịch Chuyển"
+        print("Auto Dịch Chuyển ĐÃ TẮT")
+    end
+end)
