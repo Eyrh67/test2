@@ -1,16 +1,5 @@
--- Thiết lập tọa độ dịch chuyển
-local targetPosition = Vector3.new(-0.487000167, 9.38285542, -17.3451862)
-
 -- Trạng thái auto click
 local autoClick = false -- Mặc định tắt auto click
-
--- Hàm dịch chuyển nhân vật
-local function teleportPlayer(player)
-    local character = player.Character or player.CharacterAdded:Wait()
-    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-    humanoidRootPart.CFrame = CFrame.new(targetPosition)
-    print("Đã dịch chuyển đến tọa độ mục tiêu!")
-end
 
 -- Hàm bật/tắt auto click
 local function toggleAutoClick()
@@ -27,28 +16,98 @@ end
 local function startAutoClick()
     spawn(function()
         while autoClick do
-            -- Thực hiện click chuột (giả lập chuột trái)
-            game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 0)
-            game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            -- Lấy vị trí chuột
+            local UIS = game:GetService("UserInputService")
+            local mousePosition = UIS:GetMouseLocation()
+
+            -- Giả lập click chuột trái tại vị trí chuột
+            game:GetService("VirtualInputManager"):SendMouseButtonEvent(
+                mousePosition.X, 
+                mousePosition.Y, 
+                0, 
+                true, 
+                game, 
+                0
+            )
+            game:GetService("VirtualInputManager"):SendMouseButtonEvent(
+                mousePosition.X, 
+                mousePosition.Y, 
+                0, 
+                false, 
+                game, 
+                0
+            )
+
             wait(0.1) -- Thời gian giữa các lần click
         end
     end)
 end
 
--- Nhận phím từ người chơi
+-- Tạo GUI
 local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = playerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 150) -- Kích thước của Frame
+frame.Position = UDim2.new(0.5, -100, 0.5, -75) -- Vị trí trung tâm màn hình
+frame.BackgroundColor3 = Color3.new(0, 0, 0) -- Màu đen
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+-- Kéo thả Frame
+local dragging = false
+local dragInput, dragStart, startPos
+
 local UIS = game:GetService("UserInputService")
 
-UIS.InputBegan:Connect(function(input, processed)
-    if processed then return end -- Bỏ qua nếu input đã được xử lý
+local function update(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+end
 
-    -- Nhấn phím "T" để dịch chuyển
-    if input.KeyCode == Enum.KeyCode.T then
-        teleportPlayer(player)
-    end
-
-    -- Nhấn phím "C" để bật/tắt auto click
-    if input.KeyCode == Enum.KeyCode.C then
-        toggleAutoClick()
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
     end
 end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Tạo nút "Auto Click"
+local autoClickButton = Instance.new("TextButton")
+autoClickButton.Size = UDim2.new(0, 180, 0, 50)
+autoClickButton.Position = UDim2.new(0, 10, 0, 50)
+autoClickButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2) -- Màu xám
+autoClickButton.Text = "Auto Click"
+autoClickButton.TextColor3 = Color3.new(1, 1, 1) -- Màu chữ trắng
+autoClickButton.Parent = frame
+
+autoClickButton.MouseButton1Click:Connect(function()
+    toggleAutoClick()
+end)
+
