@@ -1,8 +1,24 @@
--- Thiết lập tọa độ dịch chuyển
+-- Tọa độ dịch chuyển và tạo Part
 local targetPosition = Vector3.new(-0.487000167, 9.38285542, -17.3451862)
 
 -- Trạng thái auto click
 local autoClick = false -- Mặc định tắt auto click
+
+-- Hàm tạo Part tại tọa độ
+local function createPart()
+    local part = Instance.new("Part")
+    part.Size = Vector3.new(2, 2, 2) -- Kích thước của Part
+    part.Position = targetPosition
+    part.Anchored = true -- Để Part không di chuyển
+    part.Name = "AutoClickPart"
+    part.Parent = game.Workspace -- Đưa Part vào Workspace
+
+    -- Thêm ClickDetector vào Part
+    local clickDetector = Instance.new("ClickDetector")
+    clickDetector.Parent = part
+    print("Đã tạo Part tại tọa độ mục tiêu và thêm ClickDetector!")
+    return part
+end
 
 -- Hàm dịch chuyển nhân vật
 local function teleportPlayer(player)
@@ -27,28 +43,67 @@ end
 local function startAutoClick()
     spawn(function()
         while autoClick do
-            -- Thực hiện click chuột (giả lập chuột trái)
-            game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 0)
-            game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            local part = game.Workspace:FindFirstChild("AutoClickPart")
+            if part then
+                fireclickdetector(part:FindFirstChildOfClass("ClickDetector"))
+            else
+                print("Không tìm thấy Part để click!")
+            end
             wait(0.1) -- Thời gian giữa các lần click
         end
     end)
 end
 
--- Nhận phím từ người chơi
+-- Tạo GUI
 local player = game.Players.LocalPlayer
-local UIS = game:GetService("UserInputService")
+local playerGui = player:WaitForChild("PlayerGui")
 
-UIS.InputBegan:Connect(function(input, processed)
-    if processed then return end -- Bỏ qua nếu input đã được xử lý
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = playerGui
 
-    -- Nhấn phím "T" để dịch chuyển
-    if input.KeyCode == Enum.KeyCode.T then
-        teleportPlayer(player)
-    end
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 300) -- Kích thước của Frame
+frame.Position = UDim2.new(0.5, -100, 0.5, -150) -- Vị trí trung tâm màn hình
+frame.BackgroundColor3 = Color3.new(0, 0, 0) -- Màu đen
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
 
-    -- Nhấn phím "C" để bật/tắt auto click
-    if input.KeyCode == Enum.KeyCode.C then
-        toggleAutoClick()
-    end
+-- Tạo nút "Dịch Chuyển"
+local teleportButton = Instance.new("TextButton")
+teleportButton.Size = UDim2.new(0, 180, 0, 50)
+teleportButton.Position = UDim2.new(0, 10, 0, 10)
+teleportButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2) -- Màu xám
+teleportButton.Text = "Dịch Chuyển"
+teleportButton.TextColor3 = Color3.new(1, 1, 1) -- Màu chữ trắng
+teleportButton.Parent = frame
+
+teleportButton.MouseButton1Click:Connect(function()
+    teleportPlayer(player)
 end)
+
+-- Tạo nút "Tạo Part"
+local createPartButton = Instance.new("TextButton")
+createPartButton.Size = UDim2.new(0, 180, 0, 50)
+createPartButton.Position = UDim2.new(0, 10, 0, 70)
+createPartButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2) -- Màu xám
+createPartButton.Text = "Tạo Part"
+createPartButton.TextColor3 = Color3.new(1, 1, 1) -- Màu chữ trắng
+createPartButton.Parent = frame
+
+createPartButton.MouseButton1Click:Connect(function()
+    createPart()
+end)
+
+-- Tạo nút "Auto Click"
+local autoClickButton = Instance.new("TextButton")
+autoClickButton.Size = UDim2.new(0, 180, 0, 50)
+autoClickButton.Position = UDim2.new(0, 10, 0, 130)
+autoClickButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2) -- Màu xám
+autoClickButton.Text = "Auto Click"
+autoClickButton.TextColor3 = Color3.new(1, 1, 1) -- Màu chữ trắng
+autoClickButton.Parent = frame
+
+autoClickButton.MouseButton1Click:Connect(function()
+    toggleAutoClick()
+end)
+
