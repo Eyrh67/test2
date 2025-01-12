@@ -1,41 +1,77 @@
--- Load Kavo UI Library
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("ESP Menu", "DarkTheme") -- Tạo cửa sổ ESP Menu
+-- Danh sách các tên của các chest
+local chestNames = {"chest3"} -- Chỉ tập trung vào chest3
 
--- Tạo một Tab
-local Tab = Window:NewTab("Main")
+-- Trạng thái bật/tắt dịch chuyển
+local autoTeleport = false
 
--- Tạo Section trong Tab
-local Section = Tab:NewSection("ESP")
+-- Hàm tìm chest trong Workspace
+local function findChest(chestName)
+    return game.Workspace:FindFirstChild(chestName)
+end
 
--- ESP function
-local function toggleESP(state)
-    if state then
-        -- Nếu bật ESP
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer then
-                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Parent = player.Character
-                    highlight.FillColor = Color3.fromRGB(0, 255, 0) -- Màu xanh lá cho ESP
-                    highlight.OutlineTransparency = 0
-                    highlight.FillTransparency = 0.7
-                    highlight.Name = "ESPHighlight"
-                end
-            end
-        end
-    else
-        -- Nếu tắt ESP
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player.Character and player.Character:FindFirstChild("ESPHighlight") then
-                player.Character:FindFirstChild("ESPHighlight"):Destroy()
-            end
+-- Sử dụng TweenService để di chuyển mượt mà
+local TweenService = game:GetService("TweenService")
+
+local function flyToPosition(player, targetPosition)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    -- Tính toán tween
+    local distance = (targetPosition - humanoidRootPart.Position).Magnitude
+    local duration = distance / 10 -- Tốc độ di chuyển: càng lớn càng chậm
+
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
+    local tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = CFrame.new(targetPosition)})
+
+    tween:Play()
+    tween.Completed:Wait()
+end
+
+-- Hàm tự động dịch chuyển giữa các chest
+local function autoTeleportToChests(player)
+    while autoTeleport do
+        local chest = findChest("chest3") -- Chỉ tập trung vào chest3
+        if chest then
+            flyToPosition(player, chest.Position)
+            wait(1) -- Dừng một chút trước khi lặp lại
+        else
+            print("Không tìm thấy chest3")
         end
     end
 end
 
--- Thêm nút bật/tắt ESP
-Section:NewToggle("Toggle ESP", "Bật hoặc tắt ESP", function(state)
-    toggleESP(state)
+-- Tạo GUI
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = playerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 100) -- Kích thước Frame
+frame.Position = UDim2.new(0.5, -100, 0.5, -50) -- Vị trí trung tâm màn hình
+frame.BackgroundColor3 = Color3.new(0, 0, 0) -- Màu đen
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+-- Nút "Auto Dịch Chuyển"
+local teleportButton = Instance.new("TextButton")
+teleportButton.Size = UDim2.new(0, 180, 0, 50)
+teleportButton.Position = UDim2.new(0, 10, 0, 10)
+teleportButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2) -- Màu xám
+teleportButton.Text = "Bật Auto Dịch Chuyển"
+teleportButton.TextColor3 = Color3.new(1, 1, 1) -- Màu chữ trắng
+teleportButton.Parent = frame
+
+teleportButton.MouseButton1Click:Connect(function()
+    autoTeleport = not autoTeleport
+    if autoTeleport then
+        teleportButton.Text = "Tắt Auto Dịch Chuyển"
+        print("Auto Dịch Chuyển ĐÃ BẬT")
+        autoTeleportToChests(player)
+    else
+        teleportButton.Text = "Bật Auto Dịch Chuyển"
+        print("Auto Dịch Chuyển ĐÃ TẮT")
+    end
 end)
 
