@@ -1,42 +1,54 @@
 -- Danh sách các tên của các chest
-local chestNames = {"chest3"} -- Chỉ tập trung vào chest3
+local chestName = "chest3" -- Chỉ tập trung vào chest3
 
 -- Trạng thái bật/tắt dịch chuyển
 local autoTeleport = false
+
+-- Tốc độ di chuyển (tốc độ càng cao, càng nhanh)
+local flySpeed = 10
 
 -- Hàm tìm chest trong Workspace
 local function findChest(chestName)
     return game.Workspace:FindFirstChild(chestName)
 end
 
--- Sử dụng TweenService để di chuyển mượt mà
-local TweenService = game:GetService("TweenService")
-
-local function flyToPosition(player, targetPosition)
+-- Di chuyển nhân vật một cách mượt mà
+local function moveToTarget(player, targetPosition)
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-    -- Tính toán tween
-    local distance = (targetPosition - humanoidRootPart.Position).Magnitude
-    local duration = distance / 10 -- Tốc độ di chuyển: càng lớn càng chậm
+    local RunService = game:GetService("RunService")
+    local connection
 
-    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = CFrame.new(targetPosition)})
+    connection = RunService.Heartbeat:Connect(function(deltaTime)
+        if not autoTeleport then
+            connection:Disconnect()
+            return
+        end
 
-    tween:Play()
-    tween.Completed:Wait()
+        -- Tính toán hướng di chuyển
+        local direction = (targetPosition - humanoidRootPart.Position).Unit
+        local distance = (targetPosition - humanoidRootPart.Position).Magnitude
+
+        -- Nếu đã đến gần mục tiêu, dừng lại
+        if distance < 2 then
+            connection:Disconnect()
+            return
+        end
+
+        -- Di chuyển nhân vật
+        humanoidRootPart.CFrame = humanoidRootPart.CFrame + direction * flySpeed * deltaTime
+    end)
 end
 
--- Hàm tự động dịch chuyển giữa các chest
-local function autoTeleportToChests(player)
-    while autoTeleport do
-        local chest = findChest("chest3") -- Chỉ tập trung vào chest3
-        if chest then
-            flyToPosition(player, chest.Position)
-            wait(1) -- Dừng một chút trước khi lặp lại
-        else
-            print("Không tìm thấy chest3")
-        end
+-- Bắt đầu dịch chuyển đến chest
+local function teleportToChest(player)
+    local chest = findChest(chestName)
+    if chest then
+        print("Dịch chuyển đến " .. chestName)
+        moveToTarget(player, chest.Position)
+    else
+        print("Không tìm thấy " .. chestName)
     end
 end
 
@@ -68,10 +80,9 @@ teleportButton.MouseButton1Click:Connect(function()
     if autoTeleport then
         teleportButton.Text = "Tắt Auto Dịch Chuyển"
         print("Auto Dịch Chuyển ĐÃ BẬT")
-        autoTeleportToChests(player)
+        teleportToChest(player)
     else
         teleportButton.Text = "Bật Auto Dịch Chuyển"
         print("Auto Dịch Chuyển ĐÃ TẮT")
     end
 end)
-
