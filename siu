@@ -1,0 +1,73 @@
+-- Danh sách tọa độ và orientation đầy đủ
+local teleportPoints = {
+    {Position = Vector3.new(-480.985901, 2.08126545, 706.574219), Orientation = CFrame.new(-0.92002821, 0, 0.391852528, 0, 1, 0, -0.391852528, 0, -0.92002821)},
+    {Position = Vector3.new(-873.021118, 43.2341003, 1069.95496), Orientation = CFrame.new(0.958187819, 0, 0.286139995, 0, 1, 0, -0.286139995, 0, 0.958187819)},
+    {Position = Vector3.new(-487.286621, 2.08126545, 706.703369), Orientation = CFrame.new(-0.999791145, 0, -0.020457251, 0, 1, 0, 0.020457251, 0, -0.999791145)},
+    {Position = Vector3.new(-967.98999, 29.2403088, 1006.34357), Orientation = CFrame.new(-0.630993724, 0, 0.775788009, 0, 1, 0, -0.775788009, 0, -0.630993724)},
+    {Position = Vector3.new(-904.704041, 43.2341003, 962.434875), Orientation = CFrame.new(0.958187819, 0, 0.286139995, 0, 1, 0, -0.286139995, 0, 0.958187819)},
+    {Position = Vector3.new(-515.054504, 12.8348694, 338.31427), Orientation = CFrame.new(-0.934834838, -0.0419762693, 0.352593035, -0.022175163, 0.997951269, 0.0600129701, -0.354389787, 0.0482834056, -0.933850408)},
+    {Position = Vector3.new(-1211.14148, 43.2363281, 1279.90588), Orientation = CFrame.new(-0.231180668, 0, -0.97291106, 0, 1, 0, 0.97291106, 0, -0.231180668)},
+    {Position = Vector3.new(-464.72052, 37.620079, 598.859192), Orientation = CFrame.new(0.701425076, 0, -0.712743223, 0, 1, 0, 0.712743223, 0, 0.701425076)},
+    {Position = Vector3.new(-1350.63672, 43.2256622, 1149.0835), Orientation = CFrame.new(-0.686706185, 0, -0.726935089, 0, 1, 0, 0.726935089, 0, -0.686706185)},
+    {Position = Vector3.new(-1597.96582, 43.2357292, 823.977539), Orientation = CFrame.new(-0.958187938, 0, -0.286139995, 0, 1, 0, 0.286139995, 0, -0.958187938)},
+    {Position = Vector3.new(-744.202026, 47.3151016, 2122.75708), Orientation = CFrame.new(-0.839717031, 5.83536421e-05, -0.543024898, 0.00010722797, 1, -5.83536421e-05, 0.543024898, -0.00010722797, -0.839717031)},
+    {Position = Vector3.new(15.3761292, 67.6858978, 1703.65405), Orientation = CFrame.new(0.58515799, 0.000116163879, 0.810919285, -3.75357522e-05, 1, -0.000116163879, -0.810919285, 3.75357522e-05, 0.58515799)},
+    {Position = Vector3.new(-359.030396, 32.7977409, -433.015594), Orientation = CFrame.new(-0.894711137, 0, 0.446645588, 0, 1, 0, -0.446645588, 0, -0.894711137)},
+    {Position = Vector3.new(-1478.1582, 29.2403088, 727.727234), Orientation = CFrame.new(0.686643541, 0, 0.726994276, 0, 1, 0, -0.726994276, 0, 0.686643541)},
+}
+
+-- Tạo GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TeleportGUI"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0.3, 0, 0.2, 0)
+frame.Position = UDim2.new(0.35, 0, 0.4, 0)
+frame.BackgroundColor3 = Color3.new(0, 0, 0)
+frame.BorderColor3 = Color3.new(1, 1, 1)
+frame.Parent = screenGui
+
+local startButton = Instance.new("TextButton")
+startButton.Size = UDim2.new(0.4, 0, 0.4, 0)
+startButton.Position = UDim2.new(0.1, 0, 0.3, 0)
+startButton.Text = "Bắt đầu"
+startButton.BackgroundColor3 = Color3.new(0.2, 0.8, 0.2)
+startButton.Parent = frame
+
+local stopButton = Instance.new("TextButton")
+stopButton.Size = UDim2.new(0.4, 0, 0.4, 0)
+stopButton.Position = UDim2.new(0.5, 0, 0.3, 0)
+stopButton.Text = "Dừng lại"
+stopButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
+stopButton.Parent = frame
+
+-- Biến trạng thái
+local isTeleporting = false
+
+-- Hàm dịch chuyển
+local function teleportToPoints()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    while isTeleporting do
+        for _, point in ipairs(teleportPoints) do
+            if not isTeleporting then return end
+            humanoidRootPart.CFrame = CFrame.new(point.Position) * point.Orientation
+            wait(0.5)
+        end
+    end
+end
+
+-- Kết nối các nút
+startButton.MouseButton1Click:Connect(function()
+    if not isTeleporting then
+        isTeleporting = true
+        teleportToPoints()
+    end
+end)
+
+stopButton.MouseButton1Click:Connect(function()
+    isTeleporting = false
+end)
