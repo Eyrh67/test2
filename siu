@@ -16,58 +16,21 @@ local teleportPoints = {
     {Position = Vector3.new(-1478.1582, 29.2403088, 727.727234), Orientation = CFrame.new(0.686643541, 0, 0.726994276, 0, 1, 0, -0.726994276, 0, 0.686643541)},
 }
 
--- Tạo GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "TeleportGUI"
-screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0.3, 0, 0.2, 0)
-frame.Position = UDim2.new(0.35, 0, 0.4, 0)
-frame.BackgroundColor3 = Color3.new(0, 0, 0)
-frame.BorderColor3 = Color3.new(1, 1, 1)
-frame.Parent = screenGui
-
-local startButton = Instance.new("TextButton")
-startButton.Size = UDim2.new(0.4, 0, 0.4, 0)
-startButton.Position = UDim2.new(0.1, 0, 0.3, 0)
-startButton.Text = "Bắt đầu"
-startButton.BackgroundColor3 = Color3.new(0.2, 0.8, 0.2)
-startButton.Parent = frame
-
-local stopButton = Instance.new("TextButton")
-stopButton.Size = UDim2.new(0.4, 0, 0.4, 0)
-stopButton.Position = UDim2.new(0.5, 0, 0.3, 0)
-stopButton.Text = "Dừng lại"
-stopButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
-stopButton.Parent = frame
-
--- Biến trạng thái
-local isTeleporting = false
-
--- Hàm dịch chuyển
-local function teleportToPoints()
+-- Hàm dịch chuyển đến tọa độ ngẫu nhiên
+local function teleportToRandomPoint()
     local player = game.Players.LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-
-    while isTeleporting do
-        for _, point in ipairs(teleportPoints) do
-            if not isTeleporting then return end
-            humanoidRootPart.CFrame = CFrame.new(point.Position) * point.Orientation
-            wait(0.5)
-        end
-    end
+    
+    -- Lấy tọa độ ngẫu nhiên từ danh sách
+    local randomPoint = teleportPoints[math.random(1, #teleportPoints)]
+    humanoidRootPart.CFrame = CFrame.new(randomPoint.Position) * randomPoint.Orientation
 end
 
--- Kết nối các nút
-startButton.MouseButton1Click:Connect(function()
-    if not isTeleporting then
-        isTeleporting = true
-        teleportToPoints()
+-- Kết nối phím B để dịch chuyển
+local UIS = game:GetService("UserInputService")
+UIS.InputBegan:Connect(function(input, isProcessed)
+    if not isProcessed and input.KeyCode == Enum.KeyCode.B then
+        teleportToRandomPoint()
     end
-end)
-
-stopButton.MouseButton1Click:Connect(function()
-    isTeleporting = false
 end)
