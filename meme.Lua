@@ -11,7 +11,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FullScreenDisplay"
 screenGui.Parent = playerGui
 
--- Tạo ImageLabel để hiển thị hình ảnh
+-- Tạo ImageLabel để hiển thị decal
 local imageLabel = Instance.new("ImageLabel")
 imageLabel.Size = UDim2.new(1, 0, 1, 0) -- Kích thước toàn màn hình
 imageLabel.Position = UDim2.new(0, 0, 0, 0) -- Gắn vào góc trên bên trái màn hình
@@ -35,14 +35,14 @@ textLabel.Parent = screenGui
 local sound = Instance.new("Sound")
 sound.SoundId = soundId
 sound.Volume = 1 -- Âm lượng
-sound.Looped = false -- Không lặp
+sound.Looped = false -- Không lặp tự động
 sound.Parent = playerGui
 
--- Hàm phát âm thanh và chờ 5 giây sau khi kết thúc
+-- Hàm phát âm thanh và lặp lại sau 1 giây khi kết thúc
 local function playSoundWithDelay()
     sound:Play()
     sound.Ended:Wait() -- Đợi âm thanh kết thúc
-    wait(5) -- Chờ 5 giây trước khi lặp lại
+    wait(1) -- Chờ 1 giây trước khi phát lại
     playSoundWithDelay() -- Gọi lại chính nó để lặp
 end
 
