@@ -1,61 +1,29 @@
-if not game.CoreGui:FindFirstChild("XScreen") then
+-- Khai báo ID của Decal và Sound
+local decalId = "rbxassetid://76302086268396" -- Thay DECAL_ID_CUA_BAN bằng ID decal
+local soundId = "rbxassetid://3154932420" -- Thay SOUND_ID_CUA_BAN bằng ID âm thanh
 
-    local XScreen = Instance.new("ScreenGui")
+-- Tạo ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FullScreenDecal"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
-    local XToggle = Instance.new("TextButton")
+-- Tạo ImageLabel để hiển thị decal
+local imageLabel = Instance.new("ImageLabel")
+imageLabel.Size = UDim2.new(1, 0, 1, 0) -- Kích thước toàn màn hình
+imageLabel.Position = UDim2.new(0, 0, 0, 0)
+imageLabel.Image = decalId
+imageLabel.BackgroundTransparency = 1 -- Làm nền trong suốt
+imageLabel.Parent = screenGui
 
-    local ThunderCornerUI = Instance.new("UICorner")
+-- Tạo âm thanh
+local sound = Instance.new("Sound")
+sound.SoundId = soundId
+sound.Volume = 1 -- Âm lượng (có thể chỉnh từ 0 đến 10)
+sound.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
-    local ThunderImageUI = Instance.new("ImageLabel")
+-- Kích hoạt decal và âm thanh
+sound:Play()
 
-    local TestLabelEN = Instance.new("TextLabel")
-
-    local TestLabelVN = Instance.new("TextLabel")
-
-    XScreen.Name = "Copy YouTube Link (New Link)"
-    XScreen.Parent = game.CoreGui
-    XScreen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-    XToggle.Name = "XToggle"
-    XToggle.Parent = XScreen
-    XToggle.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Đổi nền thành màu đỏ
-    XToggle.Position = UDim2.new(0.5, -75, 0.0952890813, 0)
-    XToggle.Size = UDim2.new(0, 150, 0, 30)
-    XToggle.Font = Enum.Font.SourceSansSemibold
-    XToggle.Text = "Copy YouTube Link"
-    XToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    XToggle.TextSize = 19
-    XToggle.Draggable = true
-
-    TestLabelEN.Name = "TestLabelEN"
-    TestLabelEN.Parent = XScreen
-    TestLabelEN.BackgroundTransparency = 1
-    TestLabelEN.Size = UDim2.new(0, 200, 0, 50)
-    TestLabelEN.Position = UDim2.new(0.5, -100, 0.4, -25)
-    TestLabelEN.Font = Enum.Font.SourceSansBold
-    TestLabelEN.Text = "English: Click Button To Copy YouTube Link"
-    TestLabelEN.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TestLabelEN.TextSize = 30
-
-    TestLabelVN.Name = "TestLabelVN"
-    TestLabelVN.Parent = XScreen
-    TestLabelVN.BackgroundTransparency = 1
-    TestLabelVN.Size = UDim2.new(0, 200, 0, 50)
-    TestLabelVN.Position = UDim2.new(0.5, -100, 0.5, -25)
-    TestLabelVN.Font = Enum.Font.SourceSansBold
-    TestLabelVN.Text = "VN: Nhấn nút để sao chép liên kết YouTube"
-    TestLabelVN.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TestLabelVN.TextSize = 30
-
-    XToggle.MouseButton1Click:Connect(function()
-        setclipboard("https://www.youtube.com/your_channel_here") -- Nhập link YouTube của bạn ở đây
-    end)
-
-end
-
-repeat wait() until game:IsLoaded()
-wait()
-
-for _, v in next, getconnections(game:GetService("Players").LocalPlayer.Idled) do
-    v:Disable()
-end
+-- Tùy chọn: Ẩn decal sau một khoảng thời gian
+wait(5) -- Thời gian hiển thị decal (5 giây)
+screenGui:Destroy() -- Xóa ScreenGui
